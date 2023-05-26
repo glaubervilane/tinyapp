@@ -7,8 +7,7 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-const generateRandomString = () => {
-  const length = 6;
+const generateRandomString = (length) => {
   const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let randomString = '';
 
@@ -19,6 +18,7 @@ const generateRandomString = () => {
 
   return randomString;
 };
+
 
 app.set("view engine", "ejs");
 
@@ -39,6 +39,12 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+app.get("/u/:id", (req, res) => {
+  const { id } = req.params;
+  const longURL = urlDatabase[id];
+  res.redirect(longURL);
+});
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -52,9 +58,16 @@ app.get("/hello", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
+  const shortURL = generateRandomString(6); // Generate a random string of length 6
+  const longURL = req.body.longURL; // Assuming the long URL is provided in the request body
+
   console.log(req.body); // Log the POST request body to the console
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
+
+  urlDatabase[shortURL] = longURL; // Save the shortURL and longURL to the urlDatabase object
+
+  res.redirect(`/urls/${shortURL}`); // Redirect to the generated shortURL
 });
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
