@@ -87,6 +87,14 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls");
 });
 
+app.post("/login", (req, res) => {
+  const { username } = req.body; // Get the submitted username from req.body
+
+  // Set the cookie named "username" with the submitted value
+  res.cookie("username", username);
+
+  res.redirect("/urls"); // Redirect the browser back to the /urls page
+});
 
 
 app.listen(PORT, () => {
