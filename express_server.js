@@ -58,15 +58,22 @@ app.get("/hello", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  const shortURL = generateRandomString(6); // Generate a random string of length 6
-  const longURL = req.body.longURL; // Assuming the long URL is provided in the request body
+  const shortURL = generateRandomString(6);
+  const longURL = req.body.longURL;
 
-  console.log(req.body); // Log the POST request body to the console
+  console.log(req.body);
 
-  urlDatabase[shortURL] = longURL; // Save the shortURL and longURL to the urlDatabase object
+  urlDatabase[shortURL] = longURL;
 
-  res.redirect(`/urls/${shortURL}`); // Redirect to the generated shortURL
+  res.redirect(`/urls/${shortURL}`);
 });
+
+app.post("/urls/:id/delete", (req, res) => {
+  const { id } = req.params;
+  delete urlDatabase[id];
+  res.redirect("/urls");
+});
+
 
 
 app.listen(PORT, () => {
