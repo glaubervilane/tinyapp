@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
-const PORT = 8080; // default port 8080
+const PORT = 8080;
+const cookieParser = require('cookie-parser');
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -19,15 +20,11 @@ const generateRandomString = (length) => {
   return randomString;
 };
 
+app.use(cookieParser());
 
 app.set("view engine", "ejs");
 
 app.use(express.urlencoded({ extended: true }));
-
-app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
-  res.render("urls_index", templateVars);
-});
 
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
@@ -69,17 +66,13 @@ app.post("/urls", (req, res) => {
 });
 
 app.post('/urls/:id', (req, res) => {
-  const id = req.params.id; // Get the id from the route parameter
-  const newLongURL = req.body.longURL; // Get the updated long URL from req.body
+  const id = req.params.id;
+  const newLongURL = req.body.longURL;
 
-  // Update the value of the stored long URL based on the new value
-  // You need to implement your own logic here to update the URL in your data store
-  // For example, if you're using an object to store the URLs:
   urlDatabase[id] = newLongURL;
 
-  res.redirect('/urls'); // Redirect the client back to /urls
+  res.redirect('/urls');
 });
-
 
 app.post("/urls/:id/delete", (req, res) => {
   const { id } = req.params;
@@ -88,14 +81,20 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  const { username } = req.body; // Get the submitted username from req.body
+  const { username } = req.body;
 
-  // Set the cookie named "username" with the submitted value
   res.cookie("username", username);
 
-  res.redirect("/urls"); // Redirect the browser back to the /urls page
+  res.redirect("/urls");
 });
 
+app.get("/urls", (req, res) => {
+  const templateVars = {
+    username: req.cookies.username,
+    urls: urlDatabase
+  };
+  res.render("urls_index", templateVars);
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
