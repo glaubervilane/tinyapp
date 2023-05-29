@@ -68,6 +68,19 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`);
 });
 
+app.post('/urls/:id', (req, res) => {
+  const id = req.params.id; // Get the id from the route parameter
+  const newLongURL = req.body.longURL; // Get the updated long URL from req.body
+
+  // Update the value of the stored long URL based on the new value
+  // You need to implement your own logic here to update the URL in your data store
+  // For example, if you're using an object to store the URLs:
+  urlDatabase[id] = newLongURL;
+
+  res.redirect('/urls'); // Redirect the client back to /urls
+});
+
+
 app.post("/urls/:id/delete", (req, res) => {
   const { id } = req.params;
   delete urlDatabase[id];
