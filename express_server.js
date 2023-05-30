@@ -50,6 +50,14 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+app.get("/urls", (req, res) => {
+  const templateVars = {
+    username: req.cookies.username,
+    urls: urlDatabase
+  };
+  res.render("urls_index", templateVars);
+});
+
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
@@ -88,12 +96,9 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
 });
 
-app.get("/urls", (req, res) => {
-  const templateVars = {
-    username: req.cookies.username,
-    urls: urlDatabase
-  };
-  res.render("urls_index", templateVars);
+app.post("/logout", (req, res) => {
+  res.clearCookie("username");
+  res.redirect("/urls");
 });
 
 app.listen(PORT, () => {
