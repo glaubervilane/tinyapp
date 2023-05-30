@@ -74,12 +74,15 @@ app.get("/urls", (req, res) => {
 
 
 app.get("/register", (req, res) => {
-  res.render("register");
+  const user = users[req.cookies.user_id];
+  res.render("register", { user });
 });
+
 
 // GET /login endpoint
 app.get("/login", (req, res) => {
-  res.render("login");
+  const user = users[req.cookies.user_id];
+  res.render("login", { user });
 });
 
 app.get("/hello", (req, res) => {
@@ -113,16 +116,33 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  const { username } = req.body;
+  const { email, password } = req.body;
 
-  res.cookie("username", username);
+  // Look up the user by email
+  const user = getUserByEmail(email);
 
+  // Check if user with that email exists
+  if (!user) {
+    res.status(403).send("Invalid email");
+    return;
+  }
+
+  // Check if the password matches
+  if (user.password !== password) {
+    res.status(403).send("Invalid password");
+    return;
+  }
+
+  // Set the user_id cookie with the matching user's ID
+  res.cookie("user_id", user.id);
+
+  // Redirect to /urls
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
-  res.redirect("/urls");
+  res.clearCookie("user_id"); // Clear the user_id cookie
+  res.redirect("/login");
 });
 
 app.post("/register", (req, res) => {
