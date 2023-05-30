@@ -122,6 +122,20 @@ app.post("/logout", (req, res) => {
 
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
+
+  // Check if email or password are empty strings
+  if (email === "" || password === "") {
+    res.status(400).send("Email and password cannot be empty");
+    return;
+  }
+
+  // Check if email already exists in the users object
+  const user = getUserByEmail(email);
+  if (user) {
+    res.status(400).send("Email already registered");
+    return;
+  }
+
   const userId = generateRandomString();
 
   users[userId] = {
@@ -136,6 +150,16 @@ app.post("/register", (req, res) => {
   // Redirect the user to the /urls page
   res.redirect("/urls");
 });
+
+// Helper function to lookup a user by email
+const getUserByEmail = (email) => {
+  for (const userId in users) {
+    if (users[userId].email === email) {
+      return users[userId];
+    }
+  }
+  return null;
+};
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
