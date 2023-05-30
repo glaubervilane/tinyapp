@@ -40,12 +40,15 @@ app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const user = users[req.cookies.user_id];
+  res.render("urls_new", { user });
 });
 
 app.get("/urls/:id", (req, res) => {
   const { id } = req.params;
-  const templateVars = { id, longURL: urlDatabase[id] };
+  const user = users[req.cookies.user_id];
+  const longURL = urlDatabase[id];
+  const templateVars = { id, longURL, user };
   res.render("urls_show", templateVars);
 });
 
@@ -75,14 +78,24 @@ app.get("/urls", (req, res) => {
 
 app.get("/register", (req, res) => {
   const user = users[req.cookies.user_id];
-  res.render("register", { user });
+  // Check if the user is already logged in
+  if (user) {
+    res.redirect("/urls");
+  } else {
+    res.render("register", { user });
+  }
 });
 
 
 // GET /login endpoint
 app.get("/login", (req, res) => {
   const user = users[req.cookies.user_id];
-  res.render("login", { user });
+  // Check if the user is already logged in
+  if (user) {
+    res.redirect("/urls");
+  } else {
+    res.render("login", { user });
+  }
 });
 
 app.get("/hello", (req, res) => {
