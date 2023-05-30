@@ -8,6 +8,19 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
+
 const generateRandomString = (length) => {
   const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let randomString = '';
@@ -51,12 +64,14 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  const user = users[req.cookies.user_id];
   const templateVars = {
-    username: req.cookies.username,
+    user: user,
     urls: urlDatabase
   };
   res.render("urls_index", templateVars);
 });
+
 
 app.get("/register", (req, res) => {
   res.render("register");
@@ -102,6 +117,23 @@ app.post("/login", (req, res) => {
 
 app.post("/logout", (req, res) => {
   res.clearCookie("username");
+  res.redirect("/urls");
+});
+
+app.post("/register", (req, res) => {
+  const { email, password } = req.body;
+  const userId = generateRandomString();
+
+  users[userId] = {
+    id: userId,
+    email,
+    password,
+  };
+
+  // Set a user_id cookie containing the user's newly generated ID
+  res.cookie("user_id", userId);
+
+  // Redirect the user to the /urls page
   res.redirect("/urls");
 });
 
