@@ -23,10 +23,8 @@
           <button class="btn btn-outline-light my-2 my-sm-0" type="submit">Log Out</button>
         </form>
       <% } else { %>
-        <form class="form-inline ml-auto" method="POST" action="/login">
-          <input class="form-control mr-sm-2" type="text" name="username" placeholder="Username" required>
-          <button class="btn btn-outline-light my-2 my-sm-0" type="submit">Login</button>
-        </form>
+        <a class="nav-item nav-link" href="/register">Register</a>
+        <a class="nav-item nav-link" href="/login">Login</a>
       <% } %>
     </div>
   </nav>

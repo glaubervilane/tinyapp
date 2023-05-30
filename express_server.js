@@ -77,6 +77,11 @@ app.get("/register", (req, res) => {
   res.render("register");
 });
 
+// GET /login endpoint
+app.get("/login", (req, res) => {
+  res.render("login");
+});
+
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
