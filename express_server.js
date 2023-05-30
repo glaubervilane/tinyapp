@@ -41,8 +41,15 @@ app.use(express.urlencoded({ extended: true }));
 
 app.get("/urls/new", (req, res) => {
   const user = users[req.cookies.user_id];
-  res.render("urls_new", { user });
+  // Check if the user is logged in
+  if (!user) {
+    res.redirect("/login");
+  } else {
+    res.render("urls_new", { user });
+  }
 });
+
+
 
 app.get("/urls/:id", (req, res) => {
   const { id } = req.params;
@@ -103,15 +110,20 @@ app.get("/hello", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
+  const user = users[req.cookies.user_id];
+  // Check if the user is logged in
+  if (!user) {
+    res.status(401).send("You must be logged in to shorten URLs.");
+    return;
+  }
   const shortURL = generateRandomString(6);
   const longURL = req.body.longURL;
-
-  console.log(req.body);
 
   urlDatabase[shortURL] = longURL;
 
   res.redirect(`/urls/${shortURL}`);
 });
+
 
 app.post('/urls/:id', (req, res) => {
   const id = req.params.id;
