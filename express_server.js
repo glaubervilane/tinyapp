@@ -62,7 +62,12 @@ app.get("/urls/:id", (req, res) => {
 app.get("/u/:id", (req, res) => {
   const { id } = req.params;
   const longURL = urlDatabase[id];
-  res.redirect(longURL);
+  // Check if the id exists in the database
+  if (!longURL) {
+    res.status(404).send("URL Not Found");
+  } else {
+    res.redirect(longURL);
+  }
 });
 
 app.get("/", (req, res) => {
