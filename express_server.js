@@ -244,36 +244,11 @@ app.post("/urls/:id/delete", (req, res) => {
   }
 
   if (url.userID !== user.id) {
-    res.status(403).send("Access Denied");
+    res.status(403).send("Access Denied. Private URL created by another user");
     return;
   }
 
   delete urlDatabase[id];
-  res.redirect("/urls");
-});
-
-// Route to handle URL update
-app.post("/urls/:id/update", (req, res) => {
-  const { id } = req.params;
-  const user = users[req.cookies.user_id];
-  const url = urlDatabase[id];
-
-  if (!user) {
-    res.status(401).send("You must be logged in to update a URL.");
-    return;
-  }
-
-  if (!url) {
-    res.status(404).send("URL Not Found");
-    return;
-  }
-
-  if (url.userID !== user.id) {
-    res.status(403).send("Access Denied");
-    return;
-  }
-
-  urlDatabase[id].longURL = req.body.longURL;
   res.redirect("/urls");
 });
 
