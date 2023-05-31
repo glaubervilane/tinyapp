@@ -2,25 +2,41 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
 
+app.set("view engine", "ejs");
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// Database of shortened URLs
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    shortURL: "b6UTxQ",
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    shortURL: "i3BoGr",
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
 
+// Database of registered users
 const users = {
   userRandomID: {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur",
+    password: bcrypt.hashSync("purple-monkey-dinosaur", 10),
   },
   user2RandomID: {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk",
+    password: bcrypt.hashSync("dishwasher-funk", 10),
   },
 };
 
+// Function to generate a random string of a given length
 const generateRandomString = (length) => {
   const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let randomString = '';
@@ -33,12 +49,7 @@ const generateRandomString = (length) => {
   return randomString;
 };
 
-app.use(cookieParser());
-
-app.set("view engine", "ejs");
-
-app.use(express.urlencoded({ extended: true }));
-
+// Route to create a new shortened URL
 app.get("/urls/new", (req, res) => {
   const user = users[req.cookies.user_id];
   // Check if the user is logged in
@@ -49,45 +60,68 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
-
-
+// Route to display a specific URL
 app.get("/urls/:id", (req, res) => {
   const { id } = req.params;
   const user = users[req.cookies.user_id];
-  const longURL = urlDatabase[id];
-  const templateVars = { id, longURL, user };
+  const url = urlDatabase[id];
+  // Check if the URL exists in the database
+  if (!url) {
+    res.status(404).send("URL Not Found");
+    return;
+  }
+
+  const templateVars = { id, longURL: url.longURL, user };
   res.render("urls_show", templateVars);
 });
 
+// Route to redirect to the long URL
 app.get("/u/:id", (req, res) => {
   const { id } = req.params;
-  const longURL = urlDatabase[id];
-  // Check if the id exists in the database
-  if (!longURL) {
+  const urlObj = urlDatabase[id];
+
+  if (!urlObj) {
     res.status(404).send("URL Not Found");
-  } else {
-    res.redirect(longURL);
+    return;
   }
+
+  const longURL = urlObj.longURL;
+  res.redirect(longURL);
 });
 
+// Default route
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+// Route to retrieve the URL database in JSON format
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+// Route to display the list of URLs for a user
 app.get("/urls", (req, res) => {
   const user = users[req.cookies.user_id];
+
+  // Check if the user is logged in
+  if (!user) {
+    res.redirect("/login");
+    return;
+  }
+
+  const userUrls = Object.fromEntries(
+    Object.entries(urlDatabase).filter(([key, value]) => value.userID === user.id)
+  );
+
   const templateVars = {
     user: user,
-    urls: urlDatabase
+    urls: userUrls
   };
+
   res.render("urls_index", templateVars);
 });
 
-
+// Route to register a new user
 app.get("/register", (req, res) => {
   const user = users[req.cookies.user_id];
   // Check if the user is already logged in
@@ -98,8 +132,7 @@ app.get("/register", (req, res) => {
   }
 });
 
-
-// GET /login endpoint
+// Route to login
 app.get("/login", (req, res) => {
   const user = users[req.cookies.user_id];
   // Check if the user is already logged in
@@ -110,10 +143,12 @@ app.get("/login", (req, res) => {
   }
 });
 
+// Route to test rendering HTML with EJS
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+// Route to create a new shortened URL
 app.post("/urls", (req, res) => {
   const user = users[req.cookies.user_id];
   // Check if the user is logged in
@@ -124,27 +159,32 @@ app.post("/urls", (req, res) => {
   const shortURL = generateRandomString(6);
   const longURL = req.body.longURL;
 
-  urlDatabase[shortURL] = longURL;
+  urlDatabase[shortURL] = {
+    longURL: longURL,
+    userID: user.id
+  };
 
   res.redirect(`/urls/${shortURL}`);
 });
 
-
+// Route to update the long URL of a shortened URL
 app.post('/urls/:id', (req, res) => {
   const id = req.params.id;
   const newLongURL = req.body.longURL;
 
-  urlDatabase[id] = newLongURL;
+  urlDatabase[id].longURL = newLongURL;
 
   res.redirect('/urls');
 });
 
+// Route to delete a shortened URL
 app.post("/urls/:id/delete", (req, res) => {
   const { id } = req.params;
   delete urlDatabase[id];
   res.redirect("/urls");
 });
 
+// Route to handle the login form submission
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
@@ -158,7 +198,7 @@ app.post("/login", (req, res) => {
   }
 
   // Check if the password matches
-  if (user.password !== password) {
+  if (!bcrypt.compareSync(password, user.password)) {
     res.status(403).send("Invalid password");
     return;
   }
@@ -170,11 +210,13 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
 });
 
+// Route to handle the logout action
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id"); // Clear the user_id cookie
   res.redirect("/login");
 });
 
+// Route to register a new user
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
 
@@ -196,7 +238,7 @@ app.post("/register", (req, res) => {
   users[userId] = {
     id: userId,
     email,
-    password,
+    password: bcrypt.hashSync(password, 10),
   };
 
   // Set a user_id cookie containing the user's newly generated ID
@@ -216,6 +258,7 @@ const getUserByEmail = (email) => {
   return null;
 };
 
+// Start the server
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
