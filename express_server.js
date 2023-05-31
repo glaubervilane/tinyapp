@@ -3,6 +3,7 @@ const app = express();
 const PORT = 8080;
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
+const { getUserByEmail } = require('./helpers');
 
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
@@ -150,7 +151,7 @@ app.post("/register", (req, res) => {
     return;
   }
 
-  const existingUser = Object.values(users).find(user => user.email === email);
+  const existingUser = getUserByEmail(email, users);
 
   if (existingUser) {
     res.status(400).send("Email is already registered.");
@@ -168,7 +169,7 @@ app.post("/register", (req, res) => {
 // Route to handle user login
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-  const user = Object.values(users).find(user => user.email === email);
+  const user = getUserByEmail(email, users);
 
   if (!user || !bcrypt.compareSync(password, user.password)) {
     res.status(403).send("Invalid email or password.");
