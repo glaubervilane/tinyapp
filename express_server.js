@@ -1,12 +1,15 @@
 const express = require("express");
 const app = express();
 const PORT = 8080;
-const cookieParser = require('cookie-parser');
-const bcrypt = require('bcryptjs');
+const cookieSession = require('cookie-session');
+const bcrypt = require('bcrypt');
 
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['secret-key'], // Replace 'secret-key' with your own secret key
+}));
 
 // Database of shortened URLs
 const urlDatabase = {
@@ -50,13 +53,13 @@ const generateRandomString = (length) => {
 // Helper function to retrieve URLs for a specific user
 const urlsForUser = (userId) => {
   return Object.fromEntries(
-    Object.entries(urlDatabase).filter(([_, url]) => url.userID === userId)
+    Object.entries(urlDatabase).filter(([, url]) => url.userID === userId)
   );
 };
 
 // Route to create a new shortened URL
 app.get("/urls/new", (req, res) => {
-  const user = users[req.cookies.user_id];
+  const user = users[req.session.userId];
   // Check if the user is logged in
   if (!user) {
     res.redirect("/login");
@@ -68,7 +71,7 @@ app.get("/urls/new", (req, res) => {
 // Route to display a specific URL
 app.get("/urls/:id", (req, res) => {
   const { id } = req.params;
-  const user = users[req.cookies.user_id];
+  const user = users[req.session.userId];
   const url = urlDatabase[id];
   // Check if the user is logged in
   if (!user) {
@@ -106,12 +109,12 @@ app.get("/u/:id", (req, res) => {
 
 // GET route for registering a new user
 app.get('/register', (req, res) => {
-  res.render('register', { user: req.user });
+  res.render('register', { user: req.session.userId });
 });
 
 // GET route for login In
 app.get('/login', (req, res) => {
-  res.render('login', { user: req.user });
+  res.render('login', { user: req.session.userId });
 });
 
 // Default route
@@ -126,7 +129,7 @@ app.get("/urls.json", (req, res) => {
 
 // Route to display the list of URLs
 app.get("/urls", (req, res) => {
-  const user = users[req.cookies.user_id];
+  const user = users[req.session.userId];
   // Check if the user is logged in
   if (!user) {
     res.render("urls_login_prompt", { user });
@@ -158,7 +161,7 @@ app.post("/register", (req, res) => {
   const hashedPassword = bcrypt.hashSync(password, 10);
   users[userId] = { id: userId, email: email, password: hashedPassword };
 
-  res.cookie("user_id", userId);
+  req.session.userId = userId;
   res.redirect("/urls");
 });
 
@@ -172,19 +175,19 @@ app.post("/login", (req, res) => {
     return;
   }
 
-  res.cookie("user_id", user.id);
+  req.session.userId = user.id;
   res.redirect("/urls");
 });
 
 // Route to handle user logout
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
+  req.session = null;
   res.redirect("/urls");
 });
 
 // Route to handle URL creation
 app.post("/urls", (req, res) => {
-  const user = users[req.cookies.user_id];
+  const user = users[req.session.userId];
 
   if (!user) {
     res.status(401).send("You must be logged in to create a URL.");
@@ -205,7 +208,7 @@ app.post("/urls", (req, res) => {
 // Route to handle URL update
 app.post("/urls/:id/update", (req, res) => {
   const { id } = req.params;
-  const user = users[req.cookies.user_id];
+  const user = users[req.session.userId];
   const url = urlDatabase[id];
 
   if (!user) {
@@ -223,14 +226,14 @@ app.post("/urls/:id/update", (req, res) => {
     return;
   }
 
-  urlDatabase[id].longURL = req.body.longURL;
+  url.longURL = req.body.longURL;
   res.redirect("/urls");
 });
 
 // Route to handle URL deletion
 app.post("/urls/:id/delete", (req, res) => {
   const { id } = req.params;
-  const user = users[req.cookies.user_id];
+  const user = users[req.session.userId];
   const url = urlDatabase[id];
 
   if (!user) {
@@ -244,7 +247,7 @@ app.post("/urls/:id/delete", (req, res) => {
   }
 
   if (url.userID !== user.id) {
-    res.status(403).send("Access Denied. Private URL created by another user");
+    res.status(403).send("Access Denied");
     return;
   }
 
