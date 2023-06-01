@@ -41,6 +41,7 @@ The project structure is organized as follows:
    - helpers.js: Contains helper functions used by the server code.
    - views/: Contains the EJS templates used to render the HTML views.
    - views/partial/: Contains a header template used in all views.
+   - test/: Contains tests for helper functions.
    - express_server.js: Entry point of the application.
 
 ## Dependencies
