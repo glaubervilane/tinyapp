@@ -9,7 +9,7 @@ app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieSession({
   name: 'session',
-  keys: ['secret-key'], // Replace 'secret-key' with your own secret key
+  keys: ['secret-key'],
 }));
 
 // Database of shortened URLs
@@ -51,64 +51,60 @@ const generateRandomString = (length) => {
   return randomString;
 };
 
-// Route to create a new shortened URL
-app.get("/urls/new", (req, res) => {
+// Middleware to check if the user is logged in
+const requireLogin = (req, res, next) => {
   const user = users[req.session.userId];
-  // Check if the user is logged in
-  if (!user) {
-    res.redirect("/login");
-  } else {
-    res.render("urls_new", { user });
-  }
-});
-
-// Route to display a specific URL
-app.get("/urls/:id", (req, res) => {
-  const { id } = req.params;
-  const user = users[req.session.userId];
-  const url = urlDatabase[id];
-  // Check if the user is logged in
   if (!user) {
     res.status(401).send("You must be logged in to access this page.");
     return;
   }
-  // Check if the URL exists in the database
+  next();
+};
+
+// Route to create a new shortened URL
+app.get("/urls/new", requireLogin, (req, res) => {
+  res.render("urls_new", { user: users[req.session.userId] });
+});
+
+// Route to display a specific URL
+app.get("/urls/:id", requireLogin, (req, res) => {
+  const { id } = req.params;
+  const url = urlDatabase[id];
+
   if (!url) {
     res.status(404).send("URL Not Found");
     return;
   }
-  // Check if the URL belongs to the logged-in user
-  if (url.userID !== user.id) {
+
+  if (url.userID !== req.session.userId) {
     res.status(403).send("Access Denied");
     return;
   }
 
-  const templateVars = { id, longURL: url.longURL, user };
-  res.render("urls_show", templateVars);
+  res.render("urls_show", { id, longURL: url.longURL, user: users[req.session.userId] });
 });
 
 // Route to redirect to the long URL
 app.get("/u/:id", (req, res) => {
   const { id } = req.params;
-  const urlObj = urlDatabase[id];
+  const url = urlDatabase[id];
 
-  if (!urlObj) {
+  if (!url) {
     res.status(404).send("URL Not Found");
     return;
   }
 
-  const longURL = urlObj.longURL;
-  res.redirect(longURL);
+  res.redirect(url.longURL);
 });
 
 // GET route for registering a new user
 app.get('/register', (req, res) => {
-  res.render('register', { user: req.session.userId });
+  res.render('register', { user: users[req.session.userId] });
 });
 
 // GET route for login In
 app.get('/login', (req, res) => {
-  res.render('login', { user: req.session.userId });
+  res.render('login', { user: users[req.session.userId] });
 });
 
 // Default route
@@ -123,16 +119,14 @@ app.get("/urls.json", (req, res) => {
 
 // Route to display the list of URLs
 app.get("/urls", (req, res) => {
-  const user = users[req.session.userId];
-  // Check if the user is logged in
-  if (!user) {
-    res.render("urls_login_prompt", { user });
+  const userUrls = urlsForUser(req.session.userId, urlDatabase);
+
+  if (!userUrls) {
+    res.render("urls_login_prompt", { user: users[req.session.userId] });
     return;
   }
-  // Retrieve the URLs belonging to the logged-in user
-  const userUrls = urlsForUser(user.id, urlDatabase);
-  const templateVars = { urls: userUrls, user };
-  res.render("urls_index", templateVars);
+
+  res.render("urls_index", { urls: userUrls, user: users[req.session.userId] });
 });
 
 // Route to handle user registration
@@ -153,7 +147,7 @@ app.post("/register", (req, res) => {
 
   const userId = generateRandomString(6);
   const hashedPassword = bcrypt.hashSync(password, 10);
-  users[userId] = { id: userId, email: email, password: hashedPassword };
+  users[userId] = { id: userId, email, password: hashedPassword };
 
   req.session.userId = userId;
   res.redirect("/urls");
@@ -180,42 +174,29 @@ app.post("/logout", (req, res) => {
 });
 
 // Route to handle URL creation
-app.post("/urls", (req, res) => {
-  const user = users[req.session.userId];
-
-  if (!user) {
-    res.status(401).send("You must be logged in to create a URL.");
-    return;
-  }
-
+app.post("/urls", requireLogin, (req, res) => {
   const shortURL = generateRandomString(6);
   const longURL = req.body.longURL;
 
   urlDatabase[shortURL] = {
-    longURL: longURL,
-    userID: user.id,
+    longURL,
+    userID: req.session.userId,
   };
 
   res.redirect(`/urls/${shortURL}`);
 });
 
 // Route to handle URL update
-app.post("/urls/:id/update", (req, res) => {
+app.post("/urls/:id/update", requireLogin, (req, res) => {
   const { id } = req.params;
-  const user = users[req.session.userId];
   const url = urlDatabase[id];
-
-  if (!user) {
-    res.status(401).send("You must be logged in to update a URL.");
-    return;
-  }
 
   if (!url) {
     res.status(404).send("URL Not Found");
     return;
   }
 
-  if (url.userID !== user.id) {
+  if (url.userID !== req.session.userId) {
     res.status(403).send("Access Denied");
     return;
   }
@@ -225,22 +206,16 @@ app.post("/urls/:id/update", (req, res) => {
 });
 
 // Route to handle URL deletion
-app.post("/urls/:id/delete", (req, res) => {
+app.post("/urls/:id/delete", requireLogin, (req, res) => {
   const { id } = req.params;
-  const user = users[req.session.userId];
   const url = urlDatabase[id];
-
-  if (!user) {
-    res.status(401).send("You must be logged in to delete a URL.");
-    return;
-  }
 
   if (!url) {
     res.status(404).send("URL Not Found");
     return;
   }
 
-  if (url.userID !== user.id) {
+  if (url.userID !== req.session.userId) {
     res.status(403).send("Access Denied");
     return;
   }
