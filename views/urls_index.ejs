@@ -32,7 +32,7 @@
         <tbody>
           <% for (let id in urls) { %>
             <tr>
-              <td><%= id %></td>
+              <td><a href="/u/<%= id %>" target="_blank"><%= id %></a></td>
               <td><%= urls[id].longURL %></td>
               <td>
                 <a href="/urls/<%= id %>" class="btn btn-outline-primary">Edit</a>
@@ -44,7 +44,7 @@
               </td>
             </tr>
           <% } %>          
-        </tbody>
+        </tbody>             
       </table>
     </main>
     <!-- Bootstrap JS -->
