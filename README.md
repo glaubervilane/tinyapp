@@ -70,6 +70,13 @@ The following routes are available in the application:
    - POST /login: Handles user login.
    - POST /logout: Logs out the user by deleting the session cookie.
 
+
+## Final Product
+
+!["Screenshot of the main page application with urls"](https://github.com/glaubervilane/tinyapp/blob/master/images/urls-page.png)
+Find others images inside of images directory
+
+
 ## Contributing
 Contributions are welcome! If you find any issues or have suggestions for improvement, please open an issue or a pull request in the repository.
 
