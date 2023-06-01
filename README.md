@@ -17,57 +17,60 @@ To run the project locally, follow these steps:
 
    ```shell
    git clone https://github.com/your-username/url-shortener.git
-Navigate to the project directory:
 
-shell
-Copy code
-cd url-shortener
-Install the dependencies:
+2. Navigate to the project directory:
 
-shell
-Copy code
-npm install
-Start the server:
+  ```shell
+  cd url-shortener
 
-shell
-Copy code
-npm start
-Open your browser and access the application at http://localhost:8080.
+3. Install the dependencies:
 
-Project Structure
+  ```shell
+  npm install
+
+4. Start the server:
+
+  ```shell
+  npm start
+  
+5. Open your browser and access the application at http://localhost:8080.
+
+## Project Structure
 The project structure is organized as follows:
 
-helpers.js: Contains helper functions used by the server code.
-views/: Contains the EJS templates used to render the HTML views.
-views/partial/: Contains a header template used in all views.
-express_server.js: Entry point of the application.
-Dependencies
+  - helpers.js: Contains helper functions used by the server code.
+  - views/: Contains the EJS templates used to render the HTML views.
+  - views/partial/: Contains a header template used in all views.
+  - express_server.js: Entry point of the application.
+
+## Dependencies
 The project uses the following main dependencies:
 
-Express: Fast and minimalist web framework for Node.js
-EJS: Embedded JavaScript templates for rendering dynamic HTML pages
-Cookie-Session: Middleware for session management using encrypted cookies
-Bcryptjs: Library for hashing and comparing passwords securely
-To install all dependencies, run npm install.
+  - Express: Fast and minimalist web framework for Node.js
+  - EJS: Embedded JavaScript templates for rendering dynamic HTML pages
+  - Cookie-Session: Middleware for session management using encrypted cookies
+  - Bcryptjs: Library for hashing and comparing passwords securely
+To install all dependencies, run `npm install`.
 
-Routes
+## Routes
 The following routes are available in the application:
 
-GET /: Home route. Redirects to /urls if the user is logged in, or to /login if not.
-GET /urls: Displays a list of URLs created by the logged-in user.
-GET /urls/new: Shows a form to create a new shortened URL.
-GET /urls/:id: Shows details of a specific URL.
-GET /u/:id: Redirects to the original long URL associated with the given short URL.
-POST /urls: Creates a new shortened URL.
-POST /urls/:id/update: Updates the long URL of a specific shortened URL.
-POST /urls/:id/delete: Deletes a specific shortened URL.
-GET /register: Displays the registration form.
-POST /register: Handles user registration.
-GET /login: Displays the login form.
-POST /login: Handles user login.
-POST /logout: Logs out the user by deleting the session cookie.
-Contributing
+  - GET /: Home route. Redirects to /urls if the user is logged in, or to /login if not.
+  - GET /urls: Displays a list of URLs created by the logged-in user.
+  - GET /urls/new: Shows a form to create a new shortened URL.
+  - GET /urls/:id: Shows details of a specific URL.
+  - GET /u/:id: Redirects to the original long URL associated with the given short URL.
+  - POST /urls: Creates a new shortened URL.
+  - POST /urls/:id/update: Updates the long URL of a specific shortened URL.
+  - POST /urls/:id/delete: Deletes a specific shortened URL.
+  - GET /register: Displays the registration form.
+  - POST /register: Handles user registration.
+  - GET /login: Displays the login form.
+  - POST /login: Handles user login.
+  - POST /logout: Logs out the user by deleting the session cookie.
+
+## Contributing
 Contributions are welcome! If you find any issues or have suggestions for improvement, please open an issue or a pull request in the repository.
 
-License
+## License
 This project is licensed under the MIT License. See the LICENSE file for details.
