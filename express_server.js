@@ -3,7 +3,7 @@ const app = express();
 const PORT = 8080;
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
-const { getUserByEmail } = require('./helpers');
+const { getUserByEmail, urlsForUser } = require('./helpers');
 
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
@@ -49,13 +49,6 @@ const generateRandomString = (length) => {
   }
 
   return randomString;
-};
-
-// Helper function to retrieve URLs for a specific user
-const urlsForUser = (userId) => {
-  return Object.fromEntries(
-    Object.entries(urlDatabase).filter(([, url]) => url.userID === userId)
-  );
 };
 
 // Route to create a new shortened URL
@@ -137,7 +130,7 @@ app.get("/urls", (req, res) => {
     return;
   }
   // Retrieve the URLs belonging to the logged-in user
-  const userUrls = urlsForUser(user.id);
+  const userUrls = urlsForUser(user.id, urlDatabase);
   const templateVars = { urls: userUrls, user };
   res.render("urls_index", templateVars);
 });
