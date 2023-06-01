@@ -17,15 +17,22 @@ To run the project locally, follow these steps:
 
    ```shell
    git clone https://github.com/your-username/url-shortener.git
+
 2. Navigate to the project directory:
+
   ```shell
   cd url-shortener
+
 3. Install the dependencies:
+
   ```shell
   npm install
+
 4. Start the server:
+
   ```shell
   npm start
+  
 5. Open your browser and access the application at http://localhost:8080.
 
 ## Project Structure
