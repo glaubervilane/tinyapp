@@ -1,4 +1,4 @@
-# URL Shortener
+# TinyApp (URL Shortener)
 
 This is a web application that allows users to shorten long URLs. It is built using Node.js and Express, and provides authentication protection to ensure secure access to the shortened URLs.
 
