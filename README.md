@@ -74,7 +74,8 @@ The following routes are available in the application:
 ## Final Product
 
 !["Screenshot of the main page application with urls"](https://github.com/glaubervilane/tinyapp/blob/master/images/urls-page.png)
-Find others images inside of images directory
+
+Find others images inside of images directory [HERE](https://github.com/glaubervilane/tinyapp/tree/master/images)
 
 
 ## Contributing
