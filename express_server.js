@@ -3,7 +3,8 @@ const app = express();
 const PORT = 8080;
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
-const { getUserByEmail, urlsForUser } = require('./helpers');
+const { getUserByEmail, urlsForUser, generateRandomString, requireLogin } = require('./helpers');
+const { users, urlDatabase, } = require('./databases');
 
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
@@ -11,55 +12,6 @@ app.use(cookieSession({
   name: 'session',
   keys: ['secret-key'],
 }));
-
-// Database of shortened URLs
-const urlDatabase = {
-  b6UTxQ: {
-    longURL: "https://www.tsn.ca",
-    userID: "aJ48lW",
-  },
-  i3BoGr: {
-    longURL: "https://www.google.ca",
-    userID: "aJ48lW",
-  },
-};
-
-// Database of registered users
-const users = {
-  userRandomID: {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: bcrypt.hashSync("purple-monkey-dinosaur", 10),
-  },
-  user2RandomID: {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: bcrypt.hashSync("dishwasher-funk", 10),
-  },
-};
-
-// Function to generate a random string of a given length
-const generateRandomString = (length) => {
-  const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let randomString = '';
-
-  for (let i = 0; i < length; i++) {
-    const randomIndex = Math.floor(Math.random() * characters.length);
-    randomString += characters[randomIndex];
-  }
-
-  return randomString;
-};
-
-// Middleware to check if the user is logged in
-const requireLogin = (req, res, next) => {
-  const user = users[req.session.userId];
-  if (!user) {
-    res.status(401).send("You must be logged in to access this page.");
-    return;
-  }
-  next();
-};
 
 // Route to create a new shortened URL
 app.get("/urls/new", requireLogin, (req, res) => {
@@ -183,7 +135,7 @@ app.post("/urls", requireLogin, (req, res) => {
     userID: req.session.userId,
   };
 
-  res.redirect(`/urls/${shortURL}`);
+  res.redirect("/urls");
 });
 
 // Route to handle URL update
