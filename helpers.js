@@ -15,7 +15,16 @@ const generateRandomString = function(length) {
 const requireLogin = (req, res, next) => {
   const user = users[req.session.userId];
   if (!user) {
-    res.status(401).send("You must be logged in to access this page.");
+    res.redirect("/login");
+    return;
+  }
+  next();
+};
+
+// Middleware function used to check if the user is already logged in
+const requireNotLoggedIn = (req, res, next) => {
+  if (req.session.userId) {
+    res.redirect('/urls');
     return;
   }
   next();
@@ -49,4 +58,5 @@ module.exports = {
   requireLogin,
   getUserByEmail,
   urlsForUser,
+  requireNotLoggedIn,
 };

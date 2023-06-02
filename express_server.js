@@ -3,7 +3,7 @@ const app = express();
 const PORT = 8080;
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
-const { getUserByEmail, urlsForUser, generateRandomString, requireLogin } = require('./helpers');
+const { getUserByEmail, urlsForUser, generateRandomString, requireLogin, requireNotLoggedIn } = require('./helpers');
 const { users, urlDatabase, } = require('./databases');
 
 app.set("view engine", "ejs");
@@ -13,8 +13,39 @@ app.use(cookieSession({
   keys: ['secret-key'],
 }));
 
+// GET route for the home page
+app.get("/", (req, res) => {
+  if (req.session.userId) {
+    res.redirect("/urls");
+  } else {
+    res.redirect("/login");
+  }
+});
+
+// Route to display the list of URLs
+app.get("/urls", (req, res) => {
+  if (!req.session.userId) {
+    // User is not logged in
+    res.status(401).render("error", { message: "Please log in to view this page", user: null });
+    return;
+  }
+
+  const userUrls = urlsForUser(req.session.userId, urlDatabase);
+
+  if (!userUrls) {
+    res.render("urls_login_prompt", { user: users[req.session.userId] });
+    return;
+  }
+
+  res.render("urls_index", { urls: userUrls, user: users[req.session.userId] });
+});
+
 // Route to create a new shortened URL
 app.get("/urls/new", requireLogin, (req, res) => {
+  if (!req.session.userId) {
+    // User is not logged in, redirect to the login page from this hekper function
+    requireLogin();
+  }
   res.render("urls_new", { user: users[req.session.userId] });
 });
 
@@ -50,35 +81,18 @@ app.get("/u/:id", (req, res) => {
 });
 
 // GET route for registering a new user
-app.get('/register', (req, res) => {
+app.get('/register', requireNotLoggedIn, (req, res) => {
   res.render('register', { user: users[req.session.userId] });
 });
 
 // GET route for login In
-app.get('/login', (req, res) => {
+app.get('/login', requireNotLoggedIn, (req, res) => {
   res.render('login', { user: users[req.session.userId] });
-});
-
-// Default route
-app.get("/", (req, res) => {
-  res.send("Hello!");
 });
 
 // Route to retrieve the URL database in JSON format
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
-});
-
-// Route to display the list of URLs
-app.get("/urls", (req, res) => {
-  const userUrls = urlsForUser(req.session.userId, urlDatabase);
-
-  if (!userUrls) {
-    res.render("urls_login_prompt", { user: users[req.session.userId] });
-    return;
-  }
-
-  res.render("urls_index", { urls: userUrls, user: users[req.session.userId] });
 });
 
 // Route to handle user registration
@@ -122,7 +136,7 @@ app.post("/login", (req, res) => {
 // Route to handle user logout
 app.post("/logout", (req, res) => {
   req.session = null;
-  res.redirect("/urls");
+  res.redirect("/login");
 });
 
 // Route to handle URL creation

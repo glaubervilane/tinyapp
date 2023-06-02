@@ -14,29 +14,13 @@
       integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
       crossorigin="anonymous"
     />
-    <title>URL - Update</title>
+    <title>TinyApp</title>
   </head>
   <body>
     <main style="margin: 1em;">
       <%- include('partials/_header') %>
-      <div class="card text-center">
-        <div class="card-header"></div>
-        <div class="card-body">
-          <h5 class="card-title">TinyURL for: <%= longURL %></h5>
-          <p class="card-text">
-            Short URL ID: <a href="/u/<%= id %>"><%= id %></a>
-          </p>
-        </div>
-        <div class="card-footer text-muted">
-          <form method="POST" action="/urls/<%= id %>/update">
-            <div class="form-group">
-              <h5>Edit</h5>
-              <label for="longURL">New URL:</label>
-              <input type="text" id="longURL" name="longURL" value="<%= longURL %>">
-              <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-          </form>
-        </div>
+      <div class="alert alert-danger" role="alert">
+        Error: You must be logged in to access this page.
       </div>
     </main>
     <!-- Bootstrap JS -->
